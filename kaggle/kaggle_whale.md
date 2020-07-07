@@ -71,7 +71,29 @@ X = prepareImages(train_df, train_df.shape[0])
 X /= 255
 ```
 
+```py
+model = Sequential()
 
+model.add(Conv2D(32, (7, 7), strides = (1, 1), name = 'conv0', input_shape = (100, 100, 3)))
+
+model.add(BatchNormalization(axis = 3, name = 'bn0'))
+model.add(Activation('relu'))
+
+model.add(MaxPooling2D((2, 2), name='max_pool'))
+model.add(Conv2D(64, (3, 3), strides = (1,1), name="conv1"))
+model.add(Activation('relu'))
+model.add(AveragePooling2D((3, 3), name='avg_pool'))
+
+model.add(Flatten())
+model.add(Dense(500, activation="relu", name='rl'))
+model.add(Dropout(0.8))
+model.add(Dense(y.shape[1], activation='softmax', name='sm'))
+
+model.compile(loss='categorical_crossentropy', optimizer="adam", metrics=['accuracy'])
+model.summary()
+```
+
+## 전처리
 
 ### def prepareImages(data, m): 
 
@@ -194,9 +216,66 @@ X /= 255
 
 이제 위에 만들어 둔 함수에 값을 넣자. prepareImages는 우리가 위에서 만든 함수 호출하고 매개변수로 설정한 data, m 값에 train_df, train_df.shape[0] 이 값을 넣어준다. train_df는 csv파일 불러온 데이터고 train_df.shape[0] 는 행 갯수다. 행 index 0부터 넣어준다로 이해
 
+## ===============================================================
 
+## model
 
+```
+model = Sequential()
 
+model.add(Conv2D(32, (7, 7), strides = (1, 1), name = 'conv0', input_shape = (100, 100, 3)))
 
+model.add(BatchNormalization(axis = 3, name = 'bn0'))
+model.add(Activation('relu'))
 
+model.add(MaxPooling2D((2, 2), name='max_pool'))
+model.add(Conv2D(64, (3, 3), strides = (1,1), name="conv1"))
+model.add(Activation('relu'))
+model.add(AveragePooling2D((3, 3), name='avg_pool'))
 
+model.add(Flatten())
+model.add(Dense(500, activation="relu", name='rl'))
+model.add(Dropout(0.8))
+model.add(Dense(y.shape[1], activation='softmax', name='sm'))
+
+model.compile(loss='categorical_crossentropy', optimizer="adam", metrics=['accuracy'])
+model.summary()
+```
+
+### model = Sequential() :
+
+ 딥러닝의 구조를 짜고 층을 설정하는 부분
+
+### model.add(Conv2D(32, (7, 7), strides = (1, 1), name = 'conv0', input_shape = (100, 100, 3)))
+
+ model.add를 통해 hidden layer 층 추가 하는데 conv2D 클래스 사용 
+
+첫 번째 인자 : convolution의 filter 수, 코드에선 32
+
+두 번째 인자 : convolution의 행열, (7, 7) = 7 x 7
+
+strides는 크기 4인 1차원 리스트. [0], [3]은 반드시 1. 일반적으로 [1], [2]는 같은 값 사용. 보통 [1,2 ,2, 1] 이런식으로 쓰는거 같음. [1, 2, 2, 1] = 2칸씩 움직이려면 저렇게 
+
+### input_shape : 
+
+샘플 수를 제외한 입력 형태를 정의, model에서 첫 레이어일 때만 정의하면 된다. (첫 층일때만)
+
+(행, 열, 채널 수)로 정의. 흑백영상인 경우에는 채널이 1, 컬러(RGB)영상인 경우에는 채널을 3으로 설정.
+
+### model.add(BatchNormalization(axis = 3, name = 'bn0'))
+
+케라스에서 배치 정규화는 하나의 레이어(`BatchNormalization()`)처럼 작동하며, 보통 `Dense` 혹은 `Convolution` 레이어와 활성함수(`Activation`) 레이어 사이에 들어간다. axis=3 줘서 3차원 유지하는거 같음
+
+### model.add(Activation('relu'))
+
+activation(활성함수) relu 쓰겠다는거고 
+
+### model.add(MaxPooling2D((2, 2), name='max_pool'))
+
+컨볼루션 레이어의 출력 이미지에서 주요값만 뽑아 크기가 작은 출력 영상을 만든다. 
+
+pool_size : 수직, 수평 축소 비율을 지정, (2, 2)이면 출력 영상 크기는 입력 영상 크기의 반으로 줄어든다.
+
+### model.add(Flatten())
+
+CNN에서 convolution 레이어나 maxpooling 레이어를 반복적으로 거치면 주요 특징만 추출되고, 학습. 컨볼루션 레이어나 맥스풀링 레이어는 주로 2차원 자료를 다루지만 학습하려면 1차원 자료로 바꿔줘 함. 이 때 사용되는 것이 flatten 레이어
